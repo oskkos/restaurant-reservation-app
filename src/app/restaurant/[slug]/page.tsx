@@ -9,21 +9,17 @@ import Reservations from './components/Reservations';
 export default function RestaurantDetails() {
   return (
     <>
-      <Header></Header>
-      {/* DESCRIPTION */}
-      <div className="flex m-auto w-2/3 justify-between items-start  -mt-11">
-        <div className="bg-white w-[70%] rounded p-3 shadow">
-          <RestaurantNavBar></RestaurantNavBar>
-          <Title></Title>
-          <Rating></Rating>
-          <Description></Description>
-          <Images></Images>
-          <Reviews></Reviews>
-        </div>
-        {/* RESERVATION CARD */}
-        <div className="w-[27%] relative text-reg">
-          <Reservations></Reservations>
-        </div>
+      <div className="bg-white w-[70%] rounded p-3 shadow">
+        <RestaurantNavBar></RestaurantNavBar>
+        <Title></Title>
+        <Rating></Rating>
+        <Description></Description>
+        <Images></Images>
+        <Reviews></Reviews>
+      </div>
+      {/* RESERVATION CARD */}
+      <div className="w-[27%] relative text-reg">
+        <Reservations></Reservations>
       </div>
     </>
   );
