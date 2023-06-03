@@ -1,9 +1,5 @@
 import Header from './components/Header';
 
-export const metadata = {
-  title: 'Steakhouse Bros',
-};
-
 export default function RestaurantLayout({
   children,
   params,
