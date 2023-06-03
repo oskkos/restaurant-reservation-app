@@ -1,33 +1,13 @@
-export default function Images() {
+export default function Images({ images }: { images: string[] }) {
   return (
     <div>
-      <h1 className="font-bold text-3xl mt-10 mb-7 border-b pb-5">7 photos</h1>
+      <h1 className="font-bold text-3xl mt-10 mb-7 border-b pb-5">
+        {images.length} {images.length === 1 ? 'photo' : 'photos'}
+      </h1>
       <div className="flex flex-wrap">
-        <img
-          className="w-56 h-44 mr-1 mb-1"
-          src="https://resizer.otstatic.com/v2/photos/xlarge/2/51674607.jpg"
-          alt=""
-        />
-        <img
-          className="w-56 h-44 mr-1 mb-1"
-          src="https://resizer.otstatic.com/v2/photos/xlarge/2/51674629.jpg"
-          alt=""
-        />
-        <img
-          className="w-56 h-44 mr-1 mb-1"
-          src="https://resizer.otstatic.com/v2/photos/xlarge/2/51674688.jpg"
-          alt=""
-        />
-        <img
-          className="w-56 h-44 mr-1 mb-1"
-          src="https://resizer.otstatic.com/v2/photos/xlarge/2/51674691.jpg"
-          alt=""
-        />
-        <img
-          className="w-56 h-44 mr-1 mb-1"
-          src="https://resizer.otstatic.com/v2/photos/xlarge/1/51692116.jpg"
-          alt=""
-        />
+        {images.map((img) => (
+          <img className="w-56 h-44 mr-1 mb-1" src={img} alt="" key={img} />
+        ))}
       </div>
     </div>
   );
