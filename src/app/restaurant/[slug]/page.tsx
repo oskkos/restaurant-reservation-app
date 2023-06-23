@@ -6,6 +6,7 @@ import Images from './components/Images';
 import Reviews from './components/Reviews';
 import Reservations from './components/Reservations';
 import { prisma } from '@/app/util/prisma';
+import { notFound } from 'next/navigation';
 
 interface Props {
   params: {
@@ -14,7 +15,7 @@ interface Props {
 }
 
 const fetchRestaurantBySlug = async (slug: string) => {
-  const restaurant = await prisma.restaurant.findUniqueOrThrow({
+  const restaurant = await prisma.restaurant.findUnique({
     where: { slug },
     select: {
       id: true,
@@ -31,6 +32,9 @@ const fetchRestaurantBySlug = async (slug: string) => {
 export default async function RestaurantDetails(props: Props) {
   const restaurant = await fetchRestaurantBySlug(props.params.slug);
 
+  if (!restaurant) {
+    notFound();
+  }
   return (
     <>
       <div className="bg-white w-[70%] rounded p-3 shadow">
