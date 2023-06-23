@@ -2,7 +2,7 @@ import Header from '@/app/search/components/Header';
 import SideBar from '@/app/search/components/SideBar';
 import RestaurantCard from '@/app/search/components/RestaurantCard';
 import { prisma } from '../util/prisma';
-import { Cuisine, Location, PRICE, Restaurant } from '@prisma/client';
+import { Cuisine, Location, PRICE, Restaurant, Review } from '@prisma/client';
 
 export const metadata = {
   title: 'Search restaurants',
@@ -14,7 +14,7 @@ interface Props {
 export type RestaurantSearch = Pick<
   Restaurant,
   'id' | 'name' | 'main_image' | 'price' | 'slug'
-> & { location: Location; cuisine: Cuisine };
+> & { location: Location; cuisine: Cuisine; reviews: Review[] };
 const searchRestaurants = async (searchParams: {
   city?: string;
   cuisine?: string;
@@ -28,6 +28,7 @@ const searchRestaurants = async (searchParams: {
     cuisine: true,
     location: true,
     slug: true,
+    reviews: true,
   };
 
   return await prisma.restaurant.findMany({

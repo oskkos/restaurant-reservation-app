@@ -1,31 +1,16 @@
-export default function Reviews() {
+import { Review } from '@prisma/client';
+import ReviewCard from './ReviewCard';
+
+export default function Reviews({ reviews }: { reviews: Review[] }) {
   return (
     <div>
       <h1 className="font-bold text-3xl mt-10 mb-7 border-b pb-5">
-        What 123 people are saying
+        What {reviews.length} people are saying
       </h1>
       <div>
-        <div className="border-b pb-7 mb-7">
-          <div className="flex">
-            <div className="w1/6 flex flex-col items-center">
-              <div className="rounded-full bg-blue-400 w-16 h-16 flex items-center justify-center">
-                <h2 className="text-white-text-2xl">MJ</h2>
-              </div>
-              <p className="text-center">Michael Jordan</p>
-            </div>
-            <div className="ml-10-w-5/6">
-              <div className="flex items center">
-                <div className="flex mr-5">*****</div>
-              </div>
-              <div className="mt-5">
-                <p className="text-lg font-light">
-                  Exceptional food and drinks. Great ambiance and service. On
-                  the pricey side but well worth it for a special night.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
+        {reviews.map((review) => (
+          <ReviewCard review={review} key={review.id} />
+        ))}
       </div>
     </div>
   );
