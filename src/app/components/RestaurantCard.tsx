@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { RestaurantCardData } from '../page';
 import Price from './Price';
 import { calculateAverageRating } from '../util/reviewHelper';
+import Stars from './Stars';
 
 interface Props {
   restaurant: RestaurantCardData;
@@ -21,7 +22,7 @@ export default function RestaurantCard(props: Props) {
           <h3 className="font-bold text-2xl mb-2">{restaurant.name}</h3>
           <div className="flex items-start">
             <div className="flex mb-2">
-              {calculateAverageRating(restaurant.reviews)} / 5
+              {<Stars rating={calculateAverageRating(restaurant.reviews)} />}
             </div>
             <p className="ml-2">{`${restaurant.reviews.length} reviews`}</p>
           </div>
