@@ -10,27 +10,11 @@ export async function POST(request: NextRequest) {
 
   const validationSchema = [
     {
-      valid: validator.isLength(data.firstName, { min: 1, max: 20 }),
-      errorMessage: 'Invalid first name',
-    },
-    {
-      valid: validator.isLength(data.lastName, { min: 1, max: 40 }),
-      errorMessage: 'Invalid last name',
-    },
-    {
       valid: validator.isEmail(data.email),
       errorMessage: 'Invalid email',
     },
     {
-      valid: validator.isMobilePhone(data.phone),
-      errorMessage: 'Invalid phone number',
-    },
-    {
-      valid: validator.isLength(data.city, { min: 1, max: 20 }),
-      errorMessage: 'Invalid city',
-    },
-    {
-      valid: validator.isStrongPassword(data.password),
+      valid: validator.isLength(data.password, { min: 1 }),
       errorMessage: 'Invalid password',
     },
   ];
@@ -44,28 +28,23 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ errors }, { status: 400 });
   }
 
-  const userWithEmail = await prisma.user.findUnique({
+  const user = await prisma.user.findUnique({
     where: { email: data.email },
   });
-  if (userWithEmail) {
+  if (!user) {
     return NextResponse.json(
-      { errors: 'User already exists' },
+      { errors: 'Email or password is faulty' },
       { status: 400 },
     );
   }
 
-  const hashedPassword = await bcrypt.hash(data.password, 10);
-
-  const user = await prisma.user.create({
-    data: {
-      first_name: data.firstName,
-      last_name: data.lastName,
-      email: data.email,
-      phone: data.phone,
-      city: data.city,
-      password: hashedPassword,
-    },
-  });
+  const match = await bcrypt.compare(data.password, user.password);
+  if (!match) {
+    return NextResponse.json(
+      { errors: 'Email or password is faulty' },
+      { status: 400 },
+    );
+  }
 
   const alg = 'HS256';
   const secret = new TextEncoder().encode(process.env.JWT_SECRET);
