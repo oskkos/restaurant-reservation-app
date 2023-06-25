@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
   if (!user) {
     return NextResponse.json(
       { errors: 'Email or password is faulty' },
-      { status: 400 },
+      { status: 401 },
     );
   }
 
@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
   if (!match) {
     return NextResponse.json(
       { errors: 'Email or password is faulty' },
-      { status: 400 },
+      { status: 401 },
     );
   }
 

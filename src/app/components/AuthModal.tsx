@@ -1,8 +1,9 @@
 'use client';
-import { ChangeEvent, useState } from 'react';
+import { ChangeEvent, useEffect, useState } from 'react';
 import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
 import AuthModalInputs from './AuthModalInputs';
+import useAuth from '../hooks/useAuth';
 
 const style = {
   position: 'absolute' as 'absolute',
@@ -37,6 +38,7 @@ export default function AuthModal({ mode }: { mode: 'Signin' | 'Signup' }) {
   const [open, setOpen] = useState(false);
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
+  const { signin } = useAuth();
 
   const [inputs, setInputs] = useState({
     firstName: '',
@@ -47,9 +49,34 @@ export default function AuthModal({ mode }: { mode: 'Signin' | 'Signup' }) {
     password: '',
   });
 
+  const [disabled, setDisabled] = useState(true);
+
+  useEffect(() => {
+    if (mode === 'Signin') {
+      setDisabled(!inputs.email || !inputs.password);
+      return;
+    }
+
+    setDisabled(
+      !inputs.firstName ||
+        !inputs.lastName ||
+        !inputs.email ||
+        !inputs.phone ||
+        !inputs.city ||
+        !inputs.password,
+    );
+  }, [inputs, mode]);
+
   const onInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     setInputs({ ...inputs, [e.target.name]: e.target.value });
   };
+
+  const onSignClick = () => {
+    if (mode === 'Signin') {
+      signin({ email: inputs.email, password: inputs.password });
+    }
+  };
+
   return (
     <div>
       {mode === 'Signin' ? signinButton(handleOpen) : signoutButton(handleOpen)}
@@ -75,7 +102,11 @@ export default function AuthModal({ mode }: { mode: 'Signin' | 'Signup' }) {
                 onInputChange={onInputChange}
                 mode={mode}
               />
-              <button className="uppercase bg-red-600 w-full text-white p-3 rounded text-sm mb-5 disabled:bg-gray-400">
+              <button
+                className="uppercase bg-red-600 w-full text-white p-3 rounded text-sm mb-5 disabled:bg-gray-400"
+                disabled={disabled}
+                onClick={onSignClick}
+              >
                 {mode === 'Signin' ? 'Sign in' : 'Create account'}
               </button>
             </div>
