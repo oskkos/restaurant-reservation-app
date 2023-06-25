@@ -1,5 +1,7 @@
 'use client';
-import React, { useState, createContext } from 'react';
+import React, { useState, createContext, useEffect } from 'react';
+import { getCookie } from 'cookies-next';
+import axios from 'axios';
 
 interface User {
   firstName: string;
@@ -16,6 +18,35 @@ interface State {
 interface AuthState extends State {
   setAuthState: React.Dispatch<React.SetStateAction<State>>;
 }
+
+const fetchUser = async (
+  setAuthState: (value: React.SetStateAction<State>) => void,
+) => {
+  setAuthState({ data: null, errors: null, loading: true });
+  try {
+    const jwt = getCookie('jwt');
+
+    if (!jwt) {
+      setAuthState({ data: null, errors: null, loading: false });
+      return;
+    }
+
+    const response = await axios.get('/api/auth/whoami', {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+      },
+    });
+    axios.defaults.headers.common['Authorization'] = `Bearer ${jwt}`;
+    setAuthState({ data: response.data, errors: null, loading: false });
+  } catch (e: any) {
+    setAuthState({
+      data: null,
+      errors: e.response.data.errors as string[], // TODO: this might not exist
+      loading: false,
+    });
+  }
+};
+
 export const AuthenticationContext = createContext<AuthState>({
   loading: false,
   data: null,
@@ -33,6 +64,10 @@ export default function AuthContext({
     data: null,
     errors: null,
   });
+
+  useEffect(() => {
+    fetchUser(setAuthState);
+  }, []);
   return (
     <AuthenticationContext.Provider value={{ ...authState, setAuthState }}>
       {children}

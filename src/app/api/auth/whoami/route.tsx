@@ -17,5 +17,14 @@ export async function GET(request: NextRequest) {
     },
   });
 
-  return NextResponse.json(user);
+  if (!user) {
+    NextResponse.json({ errors: ['User not found'] }, { status: 401 });
+  }
+  return NextResponse.json({
+    firstName: user?.first_name,
+    lastName: user?.last_name,
+    city: user?.city,
+    email: user?.email,
+    phone: user?.phone,
+  });
 }
