@@ -75,5 +75,13 @@ export async function POST(request: NextRequest) {
     .setExpirationTime('24h')
     .sign(secret);
 
-  return NextResponse.json({ token });
+  const res = NextResponse.json({
+    firstName: user.first_name,
+    lastName: user.last_name,
+    email: user.email,
+    phone: user.phone,
+    city: user.city,
+  });
+  res.cookies.set('jwt', token, { maxAge: 60 * 60 * 24 });
+  return res;
 }

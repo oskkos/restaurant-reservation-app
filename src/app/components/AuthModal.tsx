@@ -1,9 +1,12 @@
 'use client';
-import { ChangeEvent, useEffect, useState } from 'react';
+import { ChangeEvent, useContext, useEffect, useState } from 'react';
 import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
 import AuthModalInputs from './AuthModalInputs';
 import useAuth from '../hooks/useAuth';
+import { AuthenticationContext } from '../context/AuthContext';
+import { Alert, CircularProgress } from '@mui/material';
+import { createSemanticDiagnosticsBuilderProgram } from 'typescript';
 
 const style = {
   position: 'absolute' as 'absolute',
@@ -38,7 +41,8 @@ export default function AuthModal({ mode }: { mode: 'Signin' | 'Signup' }) {
   const [open, setOpen] = useState(false);
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
-  const { signin } = useAuth();
+  const { signin, signup } = useAuth();
+  const { loading, data, errors } = useContext(AuthenticationContext);
 
   const [inputs, setInputs] = useState({
     firstName: '',
@@ -73,7 +77,9 @@ export default function AuthModal({ mode }: { mode: 'Signin' | 'Signup' }) {
 
   const onSignClick = () => {
     if (mode === 'Signin') {
-      signin({ email: inputs.email, password: inputs.password });
+      signin({ email: inputs.email, password: inputs.password }, handleClose);
+    } else {
+      signup(inputs, handleClose);
     }
   };
 
@@ -87,30 +93,41 @@ export default function AuthModal({ mode }: { mode: 'Signin' | 'Signup' }) {
         aria-describedby="modal-modal-description"
       >
         <Box sx={style}>
-          <div className="p-2 h-[600px]">
-            <div className="uppercase font-bold text-center pb-2 border-b mb-2">
-              {mode === 'Signin' ? 'Sign in' : 'Create account'}
+          {loading ? (
+            <div className="py-24 px-2 h-[600px] flex justify-center">
+              <CircularProgress />
             </div>
-            <div className="m-auto">
-              <h2 className="text-2xl font-light text-center">
-                {mode === 'Signin'
-                  ? 'Log into your account'
-                  : 'Create your OpenTable account'}
-              </h2>
-              <AuthModalInputs
-                inputs={inputs}
-                onInputChange={onInputChange}
-                mode={mode}
-              />
-              <button
-                className="uppercase bg-red-600 w-full text-white p-3 rounded text-sm mb-5 disabled:bg-gray-400"
-                disabled={disabled}
-                onClick={onSignClick}
-              >
+          ) : (
+            <div className="p-2 h-[600px]">
+              {errors ? (
+                <Alert severity="error" className="mb-4">
+                  {errors.join('\n')}
+                </Alert>
+              ) : null}
+              <div className="uppercase font-bold text-center pb-2 border-b mb-2">
                 {mode === 'Signin' ? 'Sign in' : 'Create account'}
-              </button>
+              </div>
+              <div className="m-auto">
+                <h2 className="text-2xl font-light text-center">
+                  {mode === 'Signin'
+                    ? 'Log into your account'
+                    : 'Create your OpenTable account'}
+                </h2>
+                <AuthModalInputs
+                  inputs={inputs}
+                  onInputChange={onInputChange}
+                  mode={mode}
+                />
+                <button
+                  className="uppercase bg-red-600 w-full text-white p-3 rounded text-sm mb-5 disabled:bg-gray-400"
+                  disabled={disabled}
+                  onClick={onSignClick}
+                >
+                  {mode === 'Signin' ? 'Sign in' : 'Create account'}
+                </button>
+              </div>
             </div>
-          </div>
+          )}
         </Box>
       </Modal>
     </div>
