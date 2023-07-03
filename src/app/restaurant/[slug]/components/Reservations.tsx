@@ -2,32 +2,49 @@
 
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-
-import {
-  PARTY_SIZE,
-  TIMES,
-  getTimeSlotsByRestaurantOpenTime,
-} from '@/app/data';
+import { PARTY_SIZE, getTimeSlotsByRestaurantOpenTime } from '@/app/data';
 import { DatePicker } from '@mui/x-date-pickers';
 import { useState } from 'react';
 import dayjs, { Dayjs } from 'dayjs';
-import { Box, TextFieldProps } from '@mui/material';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
+import { Box, CircularProgress, TextFieldProps } from '@mui/material';
+import useAvailabilities from '@/app/hooks/useAvailability';
+import Link from 'next/link';
+import { Time, convertToDisplayTime } from '@/app/util/convertToDisplayTime';
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
+dayjs.tz.setDefault(dayjs.tz.guess());
 
 export default function Reservations({
   openTime,
   closeTime,
+  slug,
 }: {
   openTime: string;
   closeTime: string;
+  slug: string;
 }) {
-  const [selectedDate, setSelectedDate] = useState<Dayjs | null>(
-    dayjs(new Date()),
-  );
+  const { data, loading, error, fetchAvailabilities } = useAvailabilities();
+  const [selectedDate, setSelectedDate] = useState<Dayjs | null>(dayjs());
+  const [time, setTime] = useState(openTime);
+  const [partySize, setPartySize] = useState('2');
 
+  const toDay = (date: Dayjs | null) => {
+    return date?.format().split('T')[0] ?? '';
+  };
   const onDateChange = (date: Dayjs | null) => {
     setSelectedDate(date);
   };
-
+  const onFindTimeClicked = () => {
+    fetchAvailabilities({
+      slug,
+      day: toDay(selectedDate),
+      time,
+      partySize,
+    });
+  };
   type BrowserInputProps = TextFieldProps & {
     ownerState?: any;
   };
@@ -58,7 +75,15 @@ export default function Reservations({
         </div>
         <div className="my-3 flex flex-col">
           <label htmlFor="">Party size</label>
-          <select name="" id="" className="py-3 border-b font-light">
+          <select
+            name=""
+            id=""
+            className="py-3 border-b font-light"
+            value={partySize}
+            onChange={(e) => {
+              setPartySize(e.target.value);
+            }}
+          >
             {PARTY_SIZE.map((x) => (
               <option key={x.value} value={x.value}>
                 {x.label}
@@ -81,7 +106,15 @@ export default function Reservations({
           </div>
           <div className="flex flex-col w-[38%]">
             <label htmlFor="">Time</label>
-            <select name="" id="" className="py-3 border-b font-light">
+            <select
+              name=""
+              id=""
+              className="py-3 border-b font-light"
+              value={time}
+              onChange={(e) => {
+                setTime(e.target.value);
+              }}
+            >
               {getTimeSlotsByRestaurantOpenTime(openTime, closeTime).map(
                 (x, i) => (
                   <option key={i} value={x.time}>
@@ -93,10 +126,42 @@ export default function Reservations({
           </div>
         </div>
         <div className="mt-5">
-          <button className="bg-red-600 rounded w-full px-4 text-white font-bold h-16">
-            Find a time
+          <button
+            className="bg-red-600 rounded w-full px-4 text-white font-bold h-16"
+            onClick={onFindTimeClicked}
+            disabled={loading}
+          >
+            {loading ? (
+              <CircularProgress color="inherit"></CircularProgress>
+            ) : (
+              'Find a time'
+            )}
           </button>
         </div>
+        {data?.length ? (
+          <div className="mt-4">
+            <p className="text-reg">Select a time</p>
+            <div className="flex flex-wrap mt-2">
+              {data.map((d) => {
+                return d.available ? (
+                  <Link
+                    key={d.time}
+                    href={`/reserve/${slug}?date=${toDay(selectedDate)}T${
+                      d.time
+                    }&partySize=${partySize}`}
+                    className="bg-red-600 cursor-pointer p-2 w-24 text-center text-white mb-3 rounded mr-3"
+                  >
+                    <p className="text-sm font-bold">
+                      {convertToDisplayTime(d.time as Time)}
+                    </p>
+                  </Link>
+                ) : (
+                  <p className="bg-gray-300 p-2 w-24 mb-3 rounded mr-3"></p>
+                );
+              })}
+            </div>
+          </div>
+        ) : null}
       </div>
     </LocalizationProvider>
   );

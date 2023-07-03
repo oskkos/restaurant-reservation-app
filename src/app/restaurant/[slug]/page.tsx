@@ -52,6 +52,7 @@ export default async function RestaurantDetails(props: Props) {
         <Reservations
           openTime={restaurant.open_time}
           closeTime={restaurant.close_time}
+          slug={restaurant.slug}
         ></Reservations>
       </div>
     </>

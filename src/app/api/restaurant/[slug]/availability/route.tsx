@@ -12,9 +12,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ errors: 'Invalid parameters' }, { status: 400 });
   }
 
-  const availibilities = await getAvailabilities(slug, day, time, partySize);
+  const availabilities = await getAvailabilities(slug, day, time, partySize);
 
-  return NextResponse.json({
-    availibilities,
-  });
+  return NextResponse.json(availabilities);
 }
