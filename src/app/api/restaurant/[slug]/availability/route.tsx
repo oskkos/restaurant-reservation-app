@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAvailabilities } from '@/app/util/availibilityHelper';
+import {
+  getAvailabilities,
+  getRestaurant,
+} from '@/app/util/availibilityHelper';
 
 export async function GET(request: NextRequest) {
   const params = request.nextUrl.searchParams;
@@ -12,7 +15,13 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ errors: 'Invalid parameters' }, { status: 400 });
   }
 
-  const availabilities = await getAvailabilities(slug, day, time, partySize);
+  const restaurant = await getRestaurant(slug);
+  const availabilities = await getAvailabilities(
+    restaurant,
+    day,
+    time,
+    partySize,
+  );
 
   return NextResponse.json(availabilities);
 }

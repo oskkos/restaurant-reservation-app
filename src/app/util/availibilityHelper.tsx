@@ -49,7 +49,7 @@ const getBookedTables = (
     };
   }, {});
 };
-const getRestaurant = async (slug: string) => {
+export const getRestaurant = async (slug: string) => {
   const restaurant = await prisma.restaurant.findUnique({
     where: { slug },
     select: { id: true, tables: true, open_time: true, close_time: true },
@@ -61,29 +61,12 @@ const getRestaurant = async (slug: string) => {
 };
 
 export const getAvailabilities = async (
-  restaurantSlug: string,
+  restaurant: Awaited<ReturnType<typeof getRestaurant>>,
   day: string,
   time: string,
   partySize: string,
 ) => {
-  const searchTimes = TIMES.find((x) => x.time === time)?.searchTimes;
-  if (!searchTimes) {
-    throw new Error('Invalid data');
-  }
-
-  const restaurant = await getRestaurant(restaurantSlug);
-  const bookings = await getExistingBookings(restaurant.id, day, time);
-  const bookedTables = getBookedTables(bookings);
-
-  return searchTimes
-    .map((searchTime) => ({
-      date: dateBuilder(day, searchTime),
-      time: searchTime,
-      tables: restaurant.tables.filter(
-        (table) =>
-          !bookedTables[dateBuilder(day, searchTime).toISOString()]?.[table.id],
-      ),
-    }))
+  return (await getSearchTimesWithTables(restaurant, day, time))
     .map((t) => {
       const sumSeats = t.tables.reduce((sum, table) => {
         return sum + table.seats;
@@ -93,13 +76,41 @@ export const getAvailabilities = async (
         available: sumSeats >= parseInt(partySize),
       };
     })
-    .filter((availability) => {
-      const timeIsAfterOpeningHours =
-        dateBuilder(day, availability.time) >=
-        dateBuilder(day, restaurant.open_time);
-      const timeIsBeforeOpeningHours =
-        dateBuilder(day, availability.time) <=
-        dateBuilder(day, restaurant.close_time);
-      return timeIsAfterOpeningHours && timeIsBeforeOpeningHours;
-    });
+    .filter((availability) =>
+      isWithinOpeningHours(restaurant, day, availability.time),
+    );
 };
+export const getSearchTimesWithTables = async (
+  restaurant: Awaited<ReturnType<typeof getRestaurant>>,
+  day: string,
+  time: string,
+) => {
+  const searchTimes = TIMES.find((x) => x.time === time)?.searchTimes;
+  if (!searchTimes) {
+    throw new Error('Invalid data');
+  }
+
+  const bookings = await getExistingBookings(restaurant.id, day, time);
+  const bookedTables = getBookedTables(bookings);
+
+  return searchTimes.map((searchTime) => ({
+    date: dateBuilder(day, searchTime),
+    time: searchTime,
+    tables: restaurant.tables.filter(
+      (table) =>
+        !bookedTables[dateBuilder(day, searchTime).toISOString()]?.[table.id],
+    ),
+  }));
+};
+
+export function isWithinOpeningHours(
+  restaurant: { open_time: string; close_time: string },
+  day: string,
+  time: string,
+) {
+  const timeIsAfterOpeningHours =
+    dateBuilder(day, time) >= dateBuilder(day, restaurant.open_time);
+  const timeIsBeforeOpeningHours =
+    dateBuilder(day, time) <= dateBuilder(day, restaurant.close_time);
+  return timeIsAfterOpeningHours && timeIsBeforeOpeningHours;
+}
