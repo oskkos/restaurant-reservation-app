@@ -5,13 +5,23 @@ import {
   getSearchTimesWithTables,
   isWithinOpeningHours,
 } from '@/app/util/availibilityHelper';
+import { prisma } from '@/app/util/prisma';
 
-export async function GET(request: NextRequest) {
+export async function POST(request: NextRequest) {
   const params = request.nextUrl.searchParams;
   const slug = request.nextUrl.pathname.split('/')[3];
   const day = params.get('day');
   const time = params.get('time');
   const partySize = parseInt(params.get('partySize') ?? '0');
+
+  const {
+    bookerEmail,
+    bookerPhone,
+    bookerFirstName,
+    bookerLastName,
+    bookerOccasion,
+    bookerRequest,
+  } = await request.json();
 
   if (!slug || !day || !time || !partySize) {
     return NextResponse.json({ errors: 'Invalid parameters' }, { status: 400 });
@@ -65,5 +75,23 @@ export async function GET(request: NextRequest) {
     }
     seatsRemaining = seatsRemaining - biggestAvailableTable;
   }
-  return NextResponse.json(tablesToBook);
+
+  const booking = await prisma.booking.create({
+    data: {
+      number_of_people: partySize,
+      booking_time: new Date(`${day}T${time}`),
+      booker_email: bookerEmail,
+      booker_first_name: bookerFirstName,
+      booker_last_name: bookerLastName,
+      booker_phone: bookerPhone,
+      booker_occasion: bookerOccasion,
+      booker_request: bookerRequest,
+      restaurant_id: restaurant.id,
+    },
+  });
+  await prisma.bookingsOnTables.createMany({
+    data: tablesToBook.map((t) => ({ booking_id: booking.id, table_id: t })),
+  });
+
+  return NextResponse.json(booking);
 }
