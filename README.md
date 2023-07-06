@@ -1,4 +1,6 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+This is a sample app for a Udemy course [The Next.js 13 Bootcamp - The Complete Developer Guide](https://www.udemy.com/course/the-nextjs-13-bootcamp-the-complete-developer-guide/). Might not agree on all the details in this code, but it was a nice introductory to Next.js, Prisma and Tailwind.
+
+---
 
 ## Getting Started
 
